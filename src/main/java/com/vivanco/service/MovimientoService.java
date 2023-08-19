@@ -9,5 +9,5 @@ import com.vivanco.dto.response.MovimientoLecturaDTO;
 public interface MovimientoService {
 	Page<MovimientoLecturaDTO> listar(Pageable pageable);
 	
-	MovimientoLecturaDTO registrar(MovimientoRegistroDTO movimientoDTO);
+	void registrar(MovimientoRegistroDTO movimientoDTO);
 }

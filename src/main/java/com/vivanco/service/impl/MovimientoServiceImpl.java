@@ -20,6 +20,7 @@ import com.vivanco.mappers.MovimientoMapper;
 import com.vivanco.repository.MovimientoRepository;
 import com.vivanco.repository.ProductoRepository;
 import com.vivanco.service.MovimientoService;
+import com.vivanco.utils.AuthUtils;
 
 @Service
 public class MovimientoServiceImpl implements MovimientoService {
@@ -32,7 +33,11 @@ public class MovimientoServiceImpl implements MovimientoService {
 
 	@Override
 	public Page<MovimientoLecturaDTO> listar(Pageable pageable) {
-		Page<Movimiento> movimientos = movimientoRepository.findAll(pageable);
+		//Obtenemos el usuario logeado
+		Long idusuario = AuthUtils.getCurrentUserId();
+		
+		//Listamos los movimientos realizados por el usuario que ingreso al sistema
+		Page<Movimiento> movimientos = movimientoRepository.listarMovimientosDeUsuarioIngresado(idusuario, pageable);
 		List<MovimientoLecturaDTO> respuesta = new ArrayList<>();
 
 		for (Movimiento movimiento : movimientos) {
@@ -45,8 +50,12 @@ public class MovimientoServiceImpl implements MovimientoService {
 
 	@Transactional
 	@Override
-	public MovimientoLecturaDTO registrar(MovimientoRegistroDTO movimientoDTO) {
-		Producto producto = productoRepository.findById(movimientoDTO.getIdProducto())
+	public void registrar(MovimientoRegistroDTO movimientoDTO) {
+		//Obtenemos el usuario logeado
+		Long idusuario = AuthUtils.getCurrentUserId();
+		
+		//Realiza busqueda por id entre los productos registrados por usuario ingresado
+		Producto producto = productoRepository.buscarPorId(idusuario, movimientoDTO.getIdProducto())
 				.orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
 		
 		int cantidad = movimientoDTO.getCantidad();
@@ -81,9 +90,7 @@ public class MovimientoServiceImpl implements MovimientoService {
 		Movimiento movimiento = MovimientoMapper.toEntity(movimientoDTO);
 		movimiento.setProducto(producto);
 
-		Movimiento registrado = movimientoRepository.save(movimiento);
-
-		return MovimientoMapper.toDTO(registrado);
+		movimientoRepository.save(movimiento);
 	}
 
 }
